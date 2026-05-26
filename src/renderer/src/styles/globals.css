@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* XSIAM-inspired dark palette */
+    --background: 220 20% 7%;
+    --foreground: 215 20% 88%;
+
+    --surface: 220 18% 11%;
+    --surface-raised: 220 16% 14%;
+    --border: 220 14% 20%;
+
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 188 85% 43%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 14% 22%;
+    --muted-foreground: 215 16% 55%;
+
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 69% 40%;
+    --warning: 38 92% 50%;
+
+    --card: 220 18% 11%;
+    --card-foreground: 215 20% 88%;
+
+    --popover: 220 16% 12%;
+    --popover-foreground: 215 20% 88%;
+
+    --input: 220 14% 17%;
+    --ring: 24 95% 53%;
+
+    --radius: 0.375rem;
+
+    /* Diff semantic */
+    --diff-add: 152 69% 40%;
+    --diff-add-bg: 152 69% 40% / 0.12;
+    --diff-remove: 0 72% 51%;
+    --diff-remove-bg: 0 72% 51% / 0.12;
+    --diff-change: 38 92% 50%;
+    --diff-change-bg: 38 92% 50% / 0.12;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, .mono {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--surface));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Drag region for frameless mac titlebar */
+.drag-region {
+  -webkit-app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}

@@ -1,27 +1,47 @@
 {
   "name": "jsonife",
   "version": "1.0.0",
-  "description": "A web UI for browsing JSON files, comparing JSON files, editing JSON files, and copying leaves between JSON files.",
-  "keywords": [
-    "JSON",
-    "copy",
-    "compare",
-    "edit",
-    "mutate"
-  ],
+  "description": "A desktop app for browsing, editing, comparing, and copying leaves between JSON/JSONC/JSONL files.",
+  "keywords": ["JSON", "JSONC", "JSONL", "compare", "edit", "electron"],
   "homepage": "https://github.com/organismzero/jsonife#readme",
-  "bugs": {
-    "url": "https://github.com/organismzero/jsonife/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/organismzero/jsonife.git"
-  },
+  "bugs": { "url": "https://github.com/organismzero/jsonife/issues" },
+  "repository": { "type": "git", "url": "git+https://github.com/organismzero/jsonife.git" },
   "license": "MIT",
   "author": "OrganismZero",
-  "type": "commonjs",
-  "main": "jsonife.js",
+  "type": "module",
+  "main": "./dist/main/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "build:win": "npm run build && electron-builder --win",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "@tailwindcss/vite": "^4.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
+    "electron": "^36.3.0",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^5.0.0",
+    "tailwindcss": "^4.1.7",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.0",
+    "vitest": "^3.2.1"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@tanstack/react-virtual": "^3.13.5",
+    "electron-store": "^10.0.1",
+    "json-diff-ts": "^4.1.0",
+    "jsonc-parser": "^3.3.1",
+    "lucide-react": "^0.511.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zustand": "^5.0.4"
   }
 }
