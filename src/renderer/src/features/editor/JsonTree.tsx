@@ -1,7 +1,12 @@
-import { useState, type ReactNode } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { ChevronRight, ChevronDown, Plus, Trash2 } from 'lucide-react'
 import type { JsonValue } from '../../lib/json/parse'
 import type { DiffKind } from '../../lib/diff/compute'
+import {
+  appendPointer,
+  isOnHighlightPath,
+  normalizeTreePointer
+} from '../../lib/json/paths'
 
 interface JsonTreeProps {
   value: JsonValue
@@ -30,9 +35,10 @@ function wrapHighlight(
   onHighlightClick: ((pointer: string) => void) | undefined,
   node: ReactNode
 ): ReactNode {
-  const kind = highlightPaths?.get(path)
+  const pointer = normalizeTreePointer(path)
+  const kind = highlightPaths?.get(pointer)
   if (!kind) return node
-  const isSelected = selectedPaths?.has(path)
+  const isSelected = selectedPaths?.has(pointer)
   const className = [
     HIGHLIGHT_CLASS[kind],
     isSelected ? 'ring-1 ring-[hsl(var(--primary))]' : '',
@@ -44,8 +50,8 @@ function wrapHighlight(
         role="button"
         tabIndex={0}
         className={className}
-        onClick={(e) => { e.stopPropagation(); onHighlightClick(path) }}
-        onKeyDown={(e) => { if (e.key === 'Enter') onHighlightClick(path) }}
+        onClick={(e) => { e.stopPropagation(); onHighlightClick(pointer) }}
+        onKeyDown={(e) => { if (e.key === 'Enter') onHighlightClick(pointer) }}
         title="Click to include in merge result"
       >
         {node}
@@ -75,7 +81,7 @@ function ValueEditor({
 
   if (!onChange) {
     return wrapHighlight(
-      path ?? '/',
+      path ?? '',
       highlightPaths,
       selectedPaths,
       onHighlightClick,
@@ -128,12 +134,22 @@ export function JsonTree({
   selectedPaths,
   onHighlightClick
 }: JsonTreeProps) {
-  const [collapsed, setCollapsed] = useState(depth > 2)
+  const compareMode = Boolean(highlightPaths?.size)
+  const [collapsed, setCollapsed] = useState(() => {
+    if (compareMode && highlightPaths && isOnHighlightPath(path, highlightPaths)) return false
+    return depth > 2
+  })
+
+  useEffect(() => {
+    if (compareMode && highlightPaths && isOnHighlightPath(path, highlightPaths)) {
+      setCollapsed(false)
+    }
+  }, [compareMode, highlightPaths, path])
 
   const indent = depth * 12
 
   if (value === null || typeof value !== 'object') {
-    const leafPath = path || '/'
+    const leafPath = path
     return (
       <div className="flex items-center gap-1.5 py-0.5" style={{ paddingLeft: indent + 4 }}>
         <span className="w-3" />
@@ -150,6 +166,14 @@ export function JsonTree({
   }
 
   if (Array.isArray(value)) {
+    const arrayHeader = (
+      <>
+        {collapsed ? <ChevronRight size={12} className="text-[hsl(var(--muted-foreground))]" /> : <ChevronDown size={12} className="text-[hsl(var(--muted-foreground))]" />}
+        <span className="text-[hsl(var(--muted-foreground))] text-[11px]">
+          [{value.length}]
+        </span>
+      </>
+    )
     return (
       <div>
         <div
@@ -157,10 +181,13 @@ export function JsonTree({
           style={{ paddingLeft: indent }}
           onClick={() => setCollapsed(!collapsed)}
         >
-          {collapsed ? <ChevronRight size={12} className="text-[hsl(var(--muted-foreground))]" /> : <ChevronDown size={12} className="text-[hsl(var(--muted-foreground))]" />}
-          <span className="text-[hsl(var(--muted-foreground))] text-[11px]">
-            [{value.length}]
-          </span>
+          {wrapHighlight(
+            path,
+            highlightPaths,
+            selectedPaths,
+            onHighlightClick,
+            arrayHeader
+          )}
         </div>
         {!collapsed && (
           <div>
@@ -179,7 +206,7 @@ export function JsonTree({
                     } : undefined}
                     readonly={readonly}
                     depth={depth + 1}
-                    path={`${path}/${i}`}
+                    path={appendPointer(path, i)}
                     highlightPaths={highlightPaths}
                     selectedPaths={selectedPaths}
                     onHighlightClick={onHighlightClick}
@@ -215,6 +242,12 @@ export function JsonTree({
   }
 
   const keys = Object.keys(value as object)
+  const objectHeader = (
+    <>
+      {collapsed ? <ChevronRight size={12} className="text-[hsl(var(--muted-foreground))]" /> : <ChevronDown size={12} className="text-[hsl(var(--muted-foreground))]" />}
+      <span className="text-[hsl(var(--muted-foreground))] text-[11px]">{`{${keys.length}}`}</span>
+    </>
+  )
   return (
     <div>
       <div
@@ -222,8 +255,13 @@ export function JsonTree({
         style={{ paddingLeft: indent }}
         onClick={() => setCollapsed(!collapsed)}
       >
-        {collapsed ? <ChevronRight size={12} className="text-[hsl(var(--muted-foreground))]" /> : <ChevronDown size={12} className="text-[hsl(var(--muted-foreground))]" />}
-        <span className="text-[hsl(var(--muted-foreground))] text-[11px]">{`{${keys.length}}`}</span>
+        {wrapHighlight(
+          path,
+          highlightPaths,
+          selectedPaths,
+          onHighlightClick,
+          objectHeader
+        )}
       </div>
       {!collapsed && (
         <div>
@@ -239,7 +277,7 @@ export function JsonTree({
                   onChange={onChange ? (v) => onChange({ ...(value as Record<string, JsonValue>), [k]: v }) : undefined}
                   readonly={readonly}
                   depth={depth + 1}
-                  path={`${path}/${k}`}
+                  path={appendPointer(path, k)}
                   highlightPaths={highlightPaths}
                   selectedPaths={selectedPaths}
                   onHighlightClick={onHighlightClick}

@@ -26,7 +26,7 @@ function ComparePanel({
   children: ReactNode
 }) {
   return (
-    <div className="flex h-full flex-col bg-[hsl(var(--surface))]">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[hsl(var(--surface))]">
       <div className={`shrink-0 border-b border-[hsl(var(--border))] px-2 py-1.5 ${accentClass}`}>
         <div className="text-[11px] font-semibold truncate">{title}</div>
         {subtitle && (
@@ -234,8 +234,9 @@ export function CompareView() {
 
       {/* 3-column compare only */}
       {leftId && rightId && leftDoc?.value && rightDoc?.value ? (
-        <div className="flex-1 min-h-0">
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
           <ResizablePanels
+            className="h-full"
             defaultRatios={[1 / 3, 1 / 3, 1 / 3]}
             panels={[
               {

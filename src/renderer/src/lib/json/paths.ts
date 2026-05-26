@@ -110,6 +110,31 @@ export function partsToPointer(parts: string[]): string {
   )
 }
 
+/** Append one JSON Pointer segment (RFC 6901 escaping for keys). */
+export function appendPointer(parent: string, segment: string | number): string {
+  const encoded = String(segment).replace(/~/g, '~0').replace(/\//g, '~1')
+  return parent ? `${parent}/${encoded}` : `/${encoded}`
+}
+
+/** Tree/compare path: empty string at document root maps to "/" for pointer lookups. */
+export function normalizeTreePointer(path: string): string {
+  return path || '/'
+}
+
+/** True if this node or any descendant appears in the diff highlight map. */
+export function isOnHighlightPath(
+  path: string,
+  highlightPaths: Map<string, unknown>
+): boolean {
+  const self = normalizeTreePointer(path)
+  for (const p of highlightPaths.keys()) {
+    if (p === self) return true
+    if (self === '/' && p.startsWith('/')) return true
+    if (self !== '/' && p.startsWith(`${self}/`)) return true
+  }
+  return false
+}
+
 export function isLeaf(value: JsonValue): boolean {
   return value === null || typeof value !== 'object' || (!Array.isArray(value) && Object.keys(value).length === 0)
 }

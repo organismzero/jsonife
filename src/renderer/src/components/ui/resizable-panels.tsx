@@ -90,7 +90,7 @@ export function ResizablePanels({
       <div
         key={panel.id}
         style={{ width: widths[i], minWidth: widths[i], maxWidth: widths[i] }}
-        className="overflow-y-auto overflow-x-hidden h-full"
+        className="flex h-full min-h-0 flex-col overflow-hidden"
       >
         {panel.content}
       </div>
