@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState, ReactNode } from 'react'
 interface ResizableSplitProps {
   left: ReactNode
   right: ReactNode
-  defaultLeftWidth?: number   // px
+  defaultLeftWidth?: number   // px (ignored if defaultLeftPercent set)
+  defaultLeftPercent?: number // 0–100, e.g. 50 for half/half
   minLeft?: number            // px
   minRight?: number           // px
   className?: string
@@ -13,12 +14,21 @@ export function ResizableSplit({
   left,
   right,
   defaultLeftWidth = 288,
+  defaultLeftPercent,
   minLeft = 140,
   minRight = 200,
   className = ''
 }: ResizableSplitProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [leftWidth, setLeftWidth] = useState(defaultLeftWidth)
+  const [initialized, setInitialized] = useState(false)
+
+  useEffect(() => {
+    if (initialized || defaultLeftPercent == null || !containerRef.current) return
+    const w = containerRef.current.getBoundingClientRect().width
+    setLeftWidth(Math.floor((w * defaultLeftPercent) / 100))
+    setInitialized(true)
+  }, [defaultLeftPercent, initialized])
   const dragging = useRef(false)
   const startX = useRef(0)
   const startWidth = useRef(0)

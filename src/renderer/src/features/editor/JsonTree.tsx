@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ChevronRight, ChevronDown, Plus, Trash2 } from 'lucide-react'
 import type { JsonValue } from '../../lib/json/parse'
+import type { DiffKind } from '../../lib/diff/compute'
 
 interface JsonTreeProps {
   value: JsonValue
@@ -8,20 +9,44 @@ interface JsonTreeProps {
   readonly?: boolean
   depth?: number
   path?: string
+  /** JSON Pointer → diff kind for path highlighting */
+  highlightPaths?: Map<string, DiffKind>
+}
+
+const HIGHLIGHT_CLASS: Record<DiffKind, string> = {
+  add: 'rounded px-0.5 bg-[hsl(var(--diff-add-bg))]',
+  remove: 'rounded px-0.5 bg-[hsl(var(--diff-remove-bg))]',
+  replace: 'rounded px-0.5 bg-[hsl(var(--diff-change-bg))]'
+}
+
+function wrapHighlight(
+  path: string,
+  highlightPaths: Map<string, DiffKind> | undefined,
+  node: ReactNode
+): ReactNode {
+  const kind = highlightPaths?.get(path)
+  if (!kind) return node
+  return <span className={HIGHLIGHT_CLASS[kind]}>{node}</span>
 }
 
 function ValueEditor({
   value,
-  onChange
+  onChange,
+  path,
+  highlightPaths
 }: {
   value: JsonValue
   onChange?: (v: JsonValue) => void
+  path?: string
+  highlightPaths?: Map<string, DiffKind>
 }) {
   const [editing, setEditing] = useState(false)
   const [raw, setRaw] = useState(String(value))
 
   if (!onChange) {
-    return (
+    return wrapHighlight(
+      path ?? '/',
+      highlightPaths,
       <span className="mono text-[11px] text-[hsl(var(--secondary))]">
         {JSON.stringify(value)}
       </span>
@@ -66,17 +91,24 @@ export function JsonTree({
   onChange,
   readonly = false,
   depth = 0,
-  path = ''
+  path = '',
+  highlightPaths
 }: JsonTreeProps) {
   const [collapsed, setCollapsed] = useState(depth > 2)
 
   const indent = depth * 12
 
   if (value === null || typeof value !== 'object') {
+    const leafPath = path || '/'
     return (
       <div className="flex items-center gap-1.5 py-0.5" style={{ paddingLeft: indent + 4 }}>
         <span className="w-3" />
-        <ValueEditor value={value} onChange={readonly ? undefined : onChange} />
+        <ValueEditor
+          value={value}
+          onChange={readonly ? undefined : onChange}
+          path={leafPath}
+          highlightPaths={highlightPaths}
+        />
       </div>
     )
   }
@@ -112,6 +144,7 @@ export function JsonTree({
                     readonly={readonly}
                     depth={depth + 1}
                     path={`${path}/${i}`}
+                    highlightPaths={highlightPaths}
                   />
                 </div>
                 {!readonly && onChange && (
@@ -169,6 +202,7 @@ export function JsonTree({
                   readonly={readonly}
                   depth={depth + 1}
                   path={`${path}/${k}`}
+                  highlightPaths={highlightPaths}
                 />
               </div>
               {!readonly && onChange && (

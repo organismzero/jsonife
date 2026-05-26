@@ -186,7 +186,7 @@ export function EditorView() {
       {/* Main content */}
       {activeDoc ? (
         <ResizableSplit
-          defaultLeftWidth={288}
+          defaultLeftPercent={50}
           minLeft={140}
           minRight={240}
           left={

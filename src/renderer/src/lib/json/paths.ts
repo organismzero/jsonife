@@ -1,5 +1,15 @@
 import type { JsonValue } from './parse'
 
+/** Convert json-diff-ts JSONPath (e.g. "$.foo[0].bar") to JSON Pointer "/foo/0/bar" */
+export function jsonPathToPointer(jsonPath: string): string {
+  if (!jsonPath || jsonPath === '$') return '/'
+  const s = jsonPath
+    .replace(/^\$\.?/, '')
+    .replace(/\[(\d+)\]/g, '/$1')
+    .replace(/\./g, '/')
+  return s ? `/${s}` : '/'
+}
+
 /** Get value at a JSON Pointer path (e.g. "/foo/0/bar") */
 export function getAtPath(root: JsonValue, pointer: string): JsonValue | undefined {
   if (pointer === '' || pointer === '/') return root
@@ -24,6 +34,41 @@ export function setAtPath(root: JsonValue, pointer: string, value: JsonValue): J
   if (pointer === '' || pointer === '/') return value
   const parts = pointerToParts(pointer)
   return setDeep(root, parts, value)
+}
+
+/** Remove value at a JSON Pointer path */
+export function deleteAtPath(root: JsonValue, pointer: string): JsonValue {
+  if (pointer === '' || pointer === '/') return root
+  const parts = pointerToParts(pointer)
+  if (parts.length === 0) return root
+  return deleteDeep(root, parts)
+}
+
+function deleteDeep(current: JsonValue, parts: string[]): JsonValue {
+  if (parts.length === 0) return current
+  const [head, ...rest] = parts
+  if (current === null || typeof current !== 'object') return current
+
+  if (Array.isArray(current)) {
+    const idx = Number(head)
+    if (isNaN(idx)) return current
+    if (rest.length === 0) {
+      return current.filter((_, i) => i !== idx)
+    }
+    const arr = [...current]
+    arr[idx] = deleteDeep(arr[idx], rest)
+    return arr
+  }
+
+  const obj = { ...(current as Record<string, JsonValue>) }
+  if (rest.length === 0) {
+    delete obj[head]
+    return obj
+  }
+  if (obj[head] !== undefined) {
+    obj[head] = deleteDeep(obj[head], rest)
+  }
+  return obj
 }
 
 function setDeep(current: JsonValue, parts: string[], value: JsonValue): JsonValue {
