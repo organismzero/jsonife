@@ -6,11 +6,16 @@ import { registerUrlHandlers } from './ipc/url'
 import { buildMenu } from './menu'
 
 function preloadScriptPath(): string {
-  const js = join(__dirname, '../preload/index.js')
-  const mjs = join(__dirname, '../preload/index.mjs')
-  if (existsSync(js)) return js
-  if (existsSync(mjs)) return mjs
-  return js
+  // With "type": "module", CJS preload must be .cjs (see electron-vite ESM guide)
+  const candidates = [
+    join(__dirname, '../preload/index.cjs'),
+    join(__dirname, '../preload/index.mjs'),
+    join(__dirname, '../preload/index.js')
+  ]
+  for (const p of candidates) {
+    if (existsSync(p)) return p
+  }
+  return candidates[0]
 }
 
 function createWindow(): BrowserWindow {

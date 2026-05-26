@@ -14,8 +14,9 @@ export default defineConfig({
       outDir: 'dist/preload',
       rollupOptions: {
         output: {
+          // package.json has "type": "module" — CJS preload must use .cjs extension
           format: 'cjs',
-          entryFileNames: 'index.js'
+          entryFileNames: 'index.cjs'
         }
       }
     }
