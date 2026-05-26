@@ -1,8 +1,17 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
+import { existsSync } from 'fs'
 import { join } from 'path'
 import { registerFileHandlers } from './ipc/file'
 import { registerUrlHandlers } from './ipc/url'
 import { buildMenu } from './menu'
+
+function preloadScriptPath(): string {
+  const js = join(__dirname, '../preload/index.js')
+  const mjs = join(__dirname, '../preload/index.mjs')
+  if (existsSync(js)) return js
+  if (existsSync(mjs)) return mjs
+  return js
+}
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -13,7 +22,7 @@ function createWindow(): BrowserWindow {
     backgroundColor: '#0d1117',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: preloadScriptPath(),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false
@@ -28,6 +37,8 @@ function createWindow(): BrowserWindow {
 
   return win
 }
+
+app.setName('Jsonife')
 
 app.whenReady().then(() => {
   registerFileHandlers(ipcMain)

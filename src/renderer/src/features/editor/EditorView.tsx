@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import MonacoEditor from '@monaco-editor/react'
 import { FileJson, Upload, Link, Save, WrapText, RotateCcw, AlertTriangle } from 'lucide-react'
 import { useDocumentStore } from '../../stores/documentStore'
@@ -9,8 +9,8 @@ import { Input } from '../../components/ui/input'
 import { TabBar } from '../../components/layout/TabBar'
 import { JsonTree } from './JsonTree'
 import { useToast } from '../../components/ui/toast'
-
-const api = window.jsonife
+import { getJsonifeApi } from '../../lib/api'
+import { useUiStore } from '../../stores/uiStore'
 
 const LANG_MAP = { json: 'json', jsonc: 'jsonc', jsonl: 'json' } as const
 
@@ -28,7 +28,8 @@ export function EditorView() {
     pushUndo
   } = useDocumentStore()
 
-  const [urlDialogOpen, setUrlDialogOpen] = useState(false)
+  const urlDialogOpen = useUiStore((s) => s.urlDialogOpen)
+  const setUrlDialogOpen = useUiStore((s) => s.setUrlDialogOpen)
   const [urlInput, setUrlInput] = useState('')
   const [urlLoading, setUrlLoading] = useState(false)
   const [oversizedWarning, setOversizedWarning] = useState<{ id: string; mb: number } | null>(null)
@@ -37,18 +38,12 @@ export function EditorView() {
 
   const activeDoc = documents.find((d) => d.id === activeId) ?? null
 
-  // Listen for native menu events
-  useEffect(() => {
-    const offs = [
-      api.onMenuEvent('menu:open-file', handleOpenFile),
-      api.onMenuEvent('menu:open-url', () => setUrlDialogOpen(true)),
-      api.onMenuEvent('menu:save', handleSave),
-      api.onMenuEvent('menu:save-as', handleSaveAs)
-    ]
-    return () => offs.forEach((fn) => fn())
-  }, [activeId]) // eslint-disable-line react-hooks/exhaustive-deps
-
   async function handleOpenFile() {
+    const api = getJsonifeApi()
+    if (!api) {
+      toast('Desktop bridge unavailable — restart the app', 'error')
+      return
+    }
     const result = await api.openFileDialog()
     if (!result) return
     if (result.oversized) {
@@ -61,6 +56,11 @@ export function EditorView() {
 
   async function handleOpenUrl() {
     if (!urlInput.trim()) return
+    const api = getJsonifeApi()
+    if (!api) {
+      toast('Desktop bridge unavailable — restart the app', 'error')
+      return
+    }
     setUrlLoading(true)
     try {
       const result = await api.fetchUrl(urlInput.trim())
@@ -77,6 +77,11 @@ export function EditorView() {
 
   async function handleSave() {
     if (!activeDoc) return
+    const api = getJsonifeApi()
+    if (!api) {
+      toast('Desktop bridge unavailable — restart the app', 'error')
+      return
+    }
     if (activeDoc.source.type === 'file' && activeDoc.source.path) {
       await api.writeFile(activeDoc.source.path, activeDoc.content)
       markSaved(activeDoc.id, activeDoc.source.path)
@@ -88,6 +93,11 @@ export function EditorView() {
 
   async function handleSaveAs() {
     if (!activeDoc) return
+    const api = getJsonifeApi()
+    if (!api) {
+      toast('Desktop bridge unavailable — restart the app', 'error')
+      return
+    }
     const path = await api.saveFileDialog(activeDoc.source.path)
     if (!path) return
     await api.writeFile(path, activeDoc.content)

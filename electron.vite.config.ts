@@ -10,7 +10,15 @@ export default defineConfig({
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
-    build: { outDir: 'dist/preload' }
+    build: {
+      outDir: 'dist/preload',
+      rollupOptions: {
+        output: {
+          format: 'cjs',
+          entryFileNames: 'index.js'
+        }
+      }
+    }
   },
   renderer: {
     root: 'src/renderer',
