@@ -11,6 +11,10 @@ interface JsonTreeProps {
   path?: string
   /** JSON Pointer → diff kind for path highlighting */
   highlightPaths?: Map<string, DiffKind>
+  /** Pointers currently included in merge preview */
+  selectedPaths?: Set<string>
+  /** Click a highlighted diff leaf (compare view) */
+  onHighlightClick?: (pointer: string) => void
 }
 
 const HIGHLIGHT_CLASS: Record<DiffKind, string> = {
@@ -22,23 +26,49 @@ const HIGHLIGHT_CLASS: Record<DiffKind, string> = {
 function wrapHighlight(
   path: string,
   highlightPaths: Map<string, DiffKind> | undefined,
+  selectedPaths: Set<string> | undefined,
+  onHighlightClick: ((pointer: string) => void) | undefined,
   node: ReactNode
 ): ReactNode {
   const kind = highlightPaths?.get(path)
   if (!kind) return node
-  return <span className={HIGHLIGHT_CLASS[kind]}>{node}</span>
+  const isSelected = selectedPaths?.has(path)
+  const className = [
+    HIGHLIGHT_CLASS[kind],
+    isSelected ? 'ring-1 ring-[hsl(var(--primary))]' : '',
+    onHighlightClick ? 'cursor-pointer hover:opacity-80' : ''
+  ].join(' ')
+  if (onHighlightClick) {
+    return (
+      <span
+        role="button"
+        tabIndex={0}
+        className={className}
+        onClick={(e) => { e.stopPropagation(); onHighlightClick(path) }}
+        onKeyDown={(e) => { if (e.key === 'Enter') onHighlightClick(path) }}
+        title="Click to include in merge result"
+      >
+        {node}
+      </span>
+    )
+  }
+  return <span className={className}>{node}</span>
 }
 
 function ValueEditor({
   value,
   onChange,
   path,
-  highlightPaths
+  highlightPaths,
+  selectedPaths,
+  onHighlightClick
 }: {
   value: JsonValue
   onChange?: (v: JsonValue) => void
   path?: string
   highlightPaths?: Map<string, DiffKind>
+  selectedPaths?: Set<string>
+  onHighlightClick?: (pointer: string) => void
 }) {
   const [editing, setEditing] = useState(false)
   const [raw, setRaw] = useState(String(value))
@@ -47,6 +77,8 @@ function ValueEditor({
     return wrapHighlight(
       path ?? '/',
       highlightPaths,
+      selectedPaths,
+      onHighlightClick,
       <span className="mono text-[11px] text-[hsl(var(--secondary))]">
         {JSON.stringify(value)}
       </span>
@@ -92,7 +124,9 @@ export function JsonTree({
   readonly = false,
   depth = 0,
   path = '',
-  highlightPaths
+  highlightPaths,
+  selectedPaths,
+  onHighlightClick
 }: JsonTreeProps) {
   const [collapsed, setCollapsed] = useState(depth > 2)
 
@@ -108,6 +142,8 @@ export function JsonTree({
           onChange={readonly ? undefined : onChange}
           path={leafPath}
           highlightPaths={highlightPaths}
+          selectedPaths={selectedPaths}
+          onHighlightClick={onHighlightClick}
         />
       </div>
     )
@@ -145,6 +181,8 @@ export function JsonTree({
                     depth={depth + 1}
                     path={`${path}/${i}`}
                     highlightPaths={highlightPaths}
+                    selectedPaths={selectedPaths}
+                    onHighlightClick={onHighlightClick}
                   />
                 </div>
                 {!readonly && onChange && (
@@ -203,6 +241,8 @@ export function JsonTree({
                   depth={depth + 1}
                   path={`${path}/${k}`}
                   highlightPaths={highlightPaths}
+                  selectedPaths={selectedPaths}
+                  onHighlightClick={onHighlightClick}
                 />
               </div>
               {!readonly && onChange && (
