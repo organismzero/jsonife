@@ -1,0 +1,27 @@
+{
+  "name": "jsonife",
+  "version": "1.0.0",
+  "description": "A web UI for browsing JSON files, comparing JSON files, editing JSON files, and copying leaves between JSON files.",
+  "keywords": [
+    "JSON",
+    "copy",
+    "compare",
+    "edit",
+    "mutate"
+  ],
+  "homepage": "https://github.com/organismzero/jsonife#readme",
+  "bugs": {
+    "url": "https://github.com/organismzero/jsonife/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/organismzero/jsonife.git"
+  },
+  "license": "MIT",
+  "author": "OrganismZero",
+  "type": "commonjs",
+  "main": "jsonife.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
