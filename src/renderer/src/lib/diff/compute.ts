@@ -40,12 +40,23 @@ export function computeDiff(
 
   return atomized.map((c, i) => {
     const path = c.path ?? '$'
+    // json-diff-ts: REMOVE stores the removed (left-only) value in `value`, not `oldValue`
+    let left: JsonValue | undefined
+    let right: JsonValue | undefined
+    if (c.type === Operation.ADD) {
+      right = c.value as JsonValue | undefined
+    } else if (c.type === Operation.REMOVE) {
+      left = c.value as JsonValue | undefined
+    } else {
+      left = c.oldValue as JsonValue | undefined
+      right = c.value as JsonValue | undefined
+    }
     return {
       id: `diff-${i}-${path}`,
       path,
       pathLabel: pathToLabel(path),
-      left: c.oldValue as JsonValue | undefined,
-      right: c.value as JsonValue | undefined,
+      left,
+      right,
       kind: opToKind(c.type)
     }
   })
