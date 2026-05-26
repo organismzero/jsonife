@@ -29,10 +29,13 @@ export function CompareView() {
   const leftDoc = documents.find((d) => d.id === leftId)
   const rightDoc = documents.find((d) => d.id === rightId)
 
+  // Depend on the IDs explicitly so swapping left/right always recomputes,
+  // even though the document objects themselves haven't changed.
   const diffs = useMemo<LeafDiff[]>(() => {
     if (!leftDoc?.value || !rightDoc?.value) return []
     return computeDiff(leftDoc.value, rightDoc.value, arrayKey || 'id')
-  }, [leftDoc, rightDoc, arrayKey])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leftId, rightId, leftDoc?.content, rightDoc?.content, arrayKey])
 
   const filtered = useMemo(() => {
     let result = diffs
@@ -224,8 +227,14 @@ export function CompareView() {
               <input type="checkbox" checked={allSelected} onChange={toggleAll} className="accent-[hsl(var(--primary))]" />
             </div>
             <div className="p-2">Path</div>
-            <div className="p-2">Left value</div>
-            <div className="p-2">Right value</div>
+            <div className="p-2 truncate" title={leftDoc?.name}>
+              <span className="text-[hsl(var(--diff-remove))] mr-1">L</span>
+              {leftDoc?.name ?? 'Left'}
+            </div>
+            <div className="p-2 truncate" title={rightDoc?.name}>
+              <span className="text-[hsl(var(--diff-add))] mr-1">R</span>
+              {rightDoc?.name ?? 'Right'}
+            </div>
             <div className="p-2">Kind</div>
           </div>
 
