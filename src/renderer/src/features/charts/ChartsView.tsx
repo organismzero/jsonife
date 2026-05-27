@@ -1,7 +1,6 @@
 import { BarChart2 } from 'lucide-react'
 import type { JsonValue } from '../../lib/json/parse'
 
-// Future hook: extract a numeric series from a JSON document for charting
 export interface ChartSpec {
   type: 'bar' | 'line' | 'pie'
   labelPath: string
@@ -28,9 +27,11 @@ export function extractSeries(
 export function ChartsView() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 text-[hsl(var(--muted-foreground))]">
-      <BarChart2 size={56} strokeWidth={1} />
-      <p className="text-base font-medium">Charts — Coming soon</p>
-      <p className="text-sm max-w-xs text-center">
+      <div className="glow-cyan flex h-16 w-16 items-center justify-center rounded-xl bg-[hsl(var(--primary)/0.08)]">
+        <BarChart2 size={40} strokeWidth={1} className="text-[hsl(var(--primary))]" />
+      </div>
+      <p className="text-base font-medium text-[hsl(var(--foreground))]">Charts — Coming soon</p>
+      <p className="max-w-xs text-center text-sm">
         Future feature: create bar, line, and pie charts directly from your JSON data.
       </p>
     </div>

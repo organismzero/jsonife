@@ -8,7 +8,7 @@ A desktop application for browsing, editing, comparing, and copying leaves betwe
 - **Edit** with a synchronized hybrid editor: JSON tree view + Monaco text editor
 - **Compare** two open documents side-by-side with a virtualized diff table (filter by added/removed/changed, search by path)
 - **Copy leaves** from a source node to a target node across documents, with key-field-based array matching and single-step undo
-- XSIAM-inspired dark UI (orange accent, SecOps density, JetBrains Mono)
+- XSIAM-inspired dark UI (cyan/teal accent, lime CTAs, SecOps density, JetBrains Mono)
 - Cross-platform: Windows, macOS, Linux
 
 ## Tech stack

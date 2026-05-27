@@ -17,10 +17,17 @@ const ToastContext = createContext<ToastCtx>({ toast: () => {} })
 export const useToast = () => useContext(ToastContext)
 
 const icons: Record<ToastType, ReactNode> = {
-  success: <CheckCircle size={14} className="text-[hsl(var(--success))]" />,
+  success: <CheckCircle size={14} className="text-[hsl(var(--cta))]" />,
   error: <AlertCircle size={14} className="text-[hsl(var(--destructive))]" />,
   warning: <AlertTriangle size={14} className="text-[hsl(var(--warning))]" />,
-  info: <Info size={14} className="text-[hsl(var(--secondary))]" />
+  info: <Info size={14} className="text-[hsl(var(--primary))]" />
+}
+
+const borderAccent: Record<ToastType, string> = {
+  success: 'border-l-[hsl(var(--cta))]',
+  error: 'border-l-[hsl(var(--destructive))]',
+  warning: 'border-l-[hsl(var(--warning))]',
+  info: 'border-l-[hsl(var(--primary))]'
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -52,11 +59,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 w-80">
+      <div className="fixed bottom-20 right-4 z-50 flex w-80 flex-col gap-2">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="flex items-start gap-2 rounded border border-[hsl(var(--border))] bg-[hsl(var(--surface-raised))] px-3 py-2.5 shadow-lg text-sm"
+            className={`panel-glass flex items-start gap-2 rounded border border-[hsl(var(--border))] border-l-4 px-3 py-2.5 text-sm shadow-lg ${borderAccent[t.type]}`}
           >
             <span className="mt-0.5 shrink-0">{icons[t.type]}</span>
             <span className="flex-1 text-[hsl(var(--foreground))]">{t.message}</span>

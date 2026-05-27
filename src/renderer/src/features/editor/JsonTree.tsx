@@ -41,7 +41,7 @@ function wrapHighlight(
   const isSelected = selectedPaths?.has(pointer)
   const className = [
     HIGHLIGHT_CLASS[kind],
-    isSelected ? 'ring-1 ring-[hsl(var(--primary))]' : '',
+    isSelected ? 'ring-1 ring-[hsl(var(--primary))] glow-cyan' : '',
     onHighlightClick ? 'cursor-pointer hover:opacity-80' : ''
   ].join(' ')
   if (onHighlightClick) {
@@ -177,7 +177,7 @@ export function JsonTree({
     return (
       <div>
         <div
-          className="flex items-center gap-1 py-0.5 cursor-pointer hover:bg-[hsl(var(--surface-raised))] rounded"
+          className="flex items-center gap-1 rounded py-0.5 cursor-pointer transition-colors hover:bg-[hsl(var(--surface-raised))]"
           style={{ paddingLeft: indent }}
           onClick={() => setCollapsed(!collapsed)}
         >
@@ -251,7 +251,7 @@ export function JsonTree({
   return (
     <div>
       <div
-        className="flex items-center gap-1 py-0.5 cursor-pointer hover:bg-[hsl(var(--surface-raised))] rounded"
+        className="flex items-center gap-1 rounded py-0.5 cursor-pointer transition-colors hover:bg-[hsl(var(--surface-raised))]"
         style={{ paddingLeft: indent }}
         onClick={() => setCollapsed(!collapsed)}
       >
@@ -268,7 +268,7 @@ export function JsonTree({
           {keys.map((k) => (
             <div key={k} className="flex items-start gap-1">
               <div className="shrink-0 flex items-center gap-1" style={{ paddingLeft: indent + 12 }}>
-                <span className="text-[hsl(var(--foreground))] text-[11px] font-medium mono">{k}</span>
+                <span className="mono text-[11px] font-medium text-[hsl(var(--foreground))]">{k}</span>
                 <span className="text-[hsl(var(--muted-foreground))] text-[11px]">:</span>
               </div>
               <div className="flex-1">

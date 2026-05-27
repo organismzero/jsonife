@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import MonacoEditor from '@monaco-editor/react'
-import { FileJson, Upload, Link, Save, WrapText, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react'
+import { FileJson, Upload, Link, Loader2 } from 'lucide-react'
 import { useDocumentStore } from '../../stores/documentStore'
-import { formatContent } from '../../lib/json/parse'
 import { Button } from '../../components/ui/button'
 import { Dialog } from '../../components/ui/dialog'
 import { Input } from '../../components/ui/input'
@@ -12,6 +11,8 @@ import { ResizableSplit } from '../../components/ui/resizable-split'
 import { useToast } from '../../components/ui/toast'
 import { getJsonifeApi } from '../../lib/api'
 import { useUiStore } from '../../stores/uiStore'
+import { useEditorCommands } from '../../hooks/useEditorCommands'
+import { defineJsonifeTheme, getJsonifeThemeId } from '../../lib/monaco/jsonifeTheme'
 
 const LANG_MAP = { json: 'json', jsonc: 'jsonc', jsonl: 'json' } as const
 
@@ -20,47 +21,27 @@ export function EditorView() {
     documents,
     activeId,
     setActiveId,
-    openFile,
     openUrl,
     updateContent,
     updateValue,
-    removeDocument,
-    markSaved,
-    pushUndo
+    removeDocument
   } = useDocumentStore()
 
   const urlDialogOpen = useUiStore((s) => s.urlDialogOpen)
   const setUrlDialogOpen = useUiStore((s) => s.setUrlDialogOpen)
   const [urlInput, setUrlInput] = useState('')
   const [urlLoading, setUrlLoading] = useState(false)
-  const [openingFile, setOpeningFile] = useState(false)
   const [monacoLoading, setMonacoLoading] = useState(true)
-  const [oversizedWarning, setOversizedWarning] = useState<{ id: string; mb: number } | null>(null)
   const { toast } = useToast()
   const syncRef = useRef(0)
 
-  const activeDoc = documents.find((d) => d.id === activeId) ?? null
-
-  async function handleOpenFile() {
-    const api = getJsonifeApi()
-    if (!api) {
-      toast('Desktop bridge unavailable — restart the app', 'error')
-      return
-    }
-    setOpeningFile(true)
-    try {
-      const result = await api.openFileDialog()
-      if (!result) return
-      if (result.oversized) {
-        const id = openFile(result.filePath, result.content)
-        setOversizedWarning({ id, mb: result.sizeMB })
-      } else {
-        openFile(result.filePath, result.content)
-      }
-    } finally {
-      setOpeningFile(false)
-    }
-  }
+  const {
+    activeDoc,
+    openingFile,
+    oversizedWarning,
+    setOversizedWarning,
+    handleOpenFile
+  } = useEditorCommands()
 
   async function handleOpenUrl() {
     if (!urlInput.trim()) return
@@ -83,44 +64,6 @@ export function EditorView() {
     }
   }
 
-  async function handleSave() {
-    if (!activeDoc) return
-    const api = getJsonifeApi()
-    if (!api) {
-      toast('Desktop bridge unavailable — restart the app', 'error')
-      return
-    }
-    if (activeDoc.source.type === 'file' && activeDoc.source.path) {
-      await api.writeFile(activeDoc.source.path, activeDoc.content)
-      markSaved(activeDoc.id, activeDoc.source.path)
-      toast('Saved', 'success')
-    } else {
-      handleSaveAs()
-    }
-  }
-
-  async function handleSaveAs() {
-    if (!activeDoc) return
-    const api = getJsonifeApi()
-    if (!api) {
-      toast('Desktop bridge unavailable — restart the app', 'error')
-      return
-    }
-    const path = await api.saveFileDialog(activeDoc.source.path)
-    if (!path) return
-    await api.writeFile(path, activeDoc.content)
-    markSaved(activeDoc.id, path)
-    toast('Saved', 'success')
-  }
-
-  function handleFormat() {
-    if (!activeDoc) return
-    const formatted = formatContent(activeDoc.content, activeDoc.format)
-    pushUndo(activeDoc.id)
-    updateContent(activeDoc.id, formatted)
-    toast('Formatted', 'info')
-  }
-
   function handleCloseTab(id: string) {
     const doc = documents.find((d) => d.id === id)
     if (doc?.isDirty) {
@@ -141,41 +84,12 @@ export function EditorView() {
     [activeId, updateContent]
   )
 
-  return (
-    <div className="flex flex-col h-full">
-      {/* Toolbar */}
-      <div className="flex items-center gap-2 border-b border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-3 py-2">
-        <Button variant="outline" size="sm" onClick={handleOpenFile} disabled={openingFile}>
-          {openingFile ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />} Open
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => setUrlDialogOpen(true)}>
-          <Link size={12} /> URL
-        </Button>
-        {activeDoc && (
-          <>
-            <div className="h-4 w-px bg-[hsl(var(--border))]" />
-            <Button variant="outline" size="sm" onClick={handleSave}>
-              <Save size={12} /> Save
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleFormat}>
-              <WrapText size={12} /> Format
-            </Button>
-            {activeDoc.undoStack.length > 0 && (
-              <Button variant="ghost" size="sm" onClick={() => { const { popUndo } = useDocumentStore.getState(); popUndo(activeDoc.id) }}>
-                <RotateCcw size={12} /> Undo apply
-              </Button>
-            )}
-            {activeDoc.errors.length > 0 && (
-              <span className="flex items-center gap-1 text-[11px] text-[hsl(var(--destructive))]">
-                <AlertTriangle size={12} />
-                {activeDoc.errors.length} error{activeDoc.errors.length > 1 ? 's' : ''}
-              </span>
-            )}
-          </>
-        )}
-      </div>
+  const handleMonacoBeforeMount = useCallback((monaco: { editor: { defineTheme: (name: string, data: object) => void } }) => {
+    defineJsonifeTheme(monaco)
+  }, [])
 
-      {/* Tabs */}
+  return (
+    <div className="flex h-full flex-col">
       <TabBar
         documents={documents}
         activeId={activeId}
@@ -183,65 +97,74 @@ export function EditorView() {
         onClose={handleCloseTab}
       />
 
-      {/* Main content */}
       {activeDoc ? (
         <ResizableSplit
+          className="flex-1 min-h-0"
           defaultLeftPercent={50}
           minLeft={140}
           minRight={240}
           left={
-            <div className="h-full bg-[hsl(var(--surface))] p-2">
-              <div className="text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))] mb-2 px-1">
-                Tree
+            <div className="panel-accent-cyan flex h-full flex-col bg-[hsl(var(--surface))] p-2">
+              <div className="section-label mb-2 px-1">Tree</div>
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {activeDoc.value !== null ? (
+                  <JsonTree
+                    value={activeDoc.value}
+                    onChange={(v) => updateValue(activeDoc.id, v)}
+                  />
+                ) : (
+                  <p className="px-1 text-[11px] text-[hsl(var(--muted-foreground))]">
+                    Parse errors — fix JSON in editor
+                  </p>
+                )}
               </div>
-              {activeDoc.value !== null ? (
-                <JsonTree
-                  value={activeDoc.value}
-                  onChange={(v) => updateValue(activeDoc.id, v)}
-                />
-              ) : (
-                <p className="text-[11px] text-[hsl(var(--muted-foreground))] px-1">
-                  Parse errors — fix JSON in editor
-                </p>
-              )}
             </div>
           }
           right={
-            <div className="relative h-full">
-              {monacoLoading && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-[hsl(var(--background))]">
-                  <Loader2 size={24} className="animate-spin text-[hsl(var(--muted-foreground))]" />
-                </div>
-              )}
-              <MonacoEditor
-                language={LANG_MAP[activeDoc.format]}
-                value={activeDoc.content}
-                onChange={handleMonacoChange}
-                onMount={() => setMonacoLoading(false)}
-                theme="vs-dark"
-                options={{
-                  fontSize: 13,
-                  fontFamily: "'JetBrains Mono', monospace",
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false,
-                  wordWrap: 'on',
-                  lineNumbers: 'on',
-                  glyphMargin: false,
-                  folding: true,
-                  renderLineHighlight: 'line',
-                  padding: { top: 8 }
-                }}
-              />
+            <div className="relative flex h-full flex-col bg-[hsl(var(--background))]">
+              <div className="section-label shrink-0 border-b border-[hsl(var(--border))] px-3 py-1.5">
+                Source
+              </div>
+              <div className="relative min-h-0 flex-1">
+                {monacoLoading && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-[hsl(var(--background))]">
+                    <Loader2 size={24} className="animate-spin text-[hsl(var(--muted-foreground))]" />
+                  </div>
+                )}
+                <MonacoEditor
+                  language={LANG_MAP[activeDoc.format]}
+                  value={activeDoc.content}
+                  onChange={handleMonacoChange}
+                  beforeMount={handleMonacoBeforeMount}
+                  onMount={() => setMonacoLoading(false)}
+                  theme={getJsonifeThemeId()}
+                  options={{
+                    fontSize: 13,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    wordWrap: 'on',
+                    lineNumbers: 'on',
+                    glyphMargin: false,
+                    folding: true,
+                    renderLineHighlight: 'line',
+                    padding: { top: 8 }
+                  }}
+                />
+              </div>
             </div>
           }
         />
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 text-[hsl(var(--muted-foreground))]">
-          <FileJson size={48} strokeWidth={1} />
-          <p className="text-sm">Open a JSON file to get started</p>
-            <div className="flex gap-2">
-            <Button onClick={handleOpenFile} disabled={openingFile}>
-              {openingFile ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Open file
+        <div className="flex flex-1 flex-col items-center justify-center gap-5 text-[hsl(var(--muted-foreground))]">
+          <div className="glow-cyan flex h-20 w-20 items-center justify-center rounded-2xl bg-[hsl(var(--primary)/0.08)]">
+            <FileJson size={48} strokeWidth={1} className="text-[hsl(var(--primary))]" />
+          </div>
+          <p className="text-sm font-medium text-[hsl(var(--foreground))]">Open a JSON file to get started</p>
+          <div className="flex gap-2">
+            <Button onClick={() => void handleOpenFile()} disabled={openingFile}>
+              {openingFile ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+              Open file
             </Button>
             <Button variant="outline" onClick={() => setUrlDialogOpen(true)}>
               <Link size={14} /> Open URL
@@ -250,7 +173,6 @@ export function EditorView() {
         </div>
       )}
 
-      {/* URL dialog */}
       <Dialog
         open={urlDialogOpen}
         onClose={() => { setUrlDialogOpen(false); setUrlInput('') }}
@@ -258,7 +180,7 @@ export function EditorView() {
         footer={
           <>
             <Button variant="outline" onClick={() => setUrlDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleOpenUrl} disabled={urlLoading}>
+            <Button onClick={() => void handleOpenUrl()} disabled={urlLoading}>
               {urlLoading ? 'Loading…' : 'Open'}
             </Button>
           </>
@@ -272,13 +194,12 @@ export function EditorView() {
             placeholder="https://example.com/data.json"
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleOpenUrl()}
+            onKeyDown={(e) => e.key === 'Enter' && void handleOpenUrl()}
             autoFocus
           />
         </div>
       </Dialog>
 
-      {/* Large file warning */}
       <Dialog
         open={oversizedWarning !== null}
         onClose={() => setOversizedWarning(null)}

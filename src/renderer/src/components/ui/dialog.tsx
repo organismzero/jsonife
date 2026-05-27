@@ -24,10 +24,10 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
-      <div className="relative w-full max-w-lg rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface))] shadow-2xl">
+      <div className="panel-glass relative w-full max-w-lg rounded-lg border border-[hsl(var(--primary)/0.25)] glow-cyan shadow-2xl">
         <div className="flex items-center justify-between border-b border-[hsl(var(--border))] px-5 py-3">
           <h2 className="text-sm font-semibold text-[hsl(var(--foreground))]">{title}</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>

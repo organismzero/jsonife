@@ -12,7 +12,7 @@ export function TabBar({ documents, activeId, onSelect, onClose }: TabBarProps) 
   if (documents.length === 0) return null
 
   return (
-    <div className="flex h-9 items-end overflow-x-auto border-b border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2 gap-0.5">
+    <div className="flex h-9 shrink-0 items-end gap-0.5 overflow-x-auto border-b border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2">
       {documents.map((doc) => {
         const isActive = doc.id === activeId
         return (
@@ -20,10 +20,10 @@ export function TabBar({ documents, activeId, onSelect, onClose }: TabBarProps) 
             key={doc.id}
             onClick={() => onSelect(doc.id)}
             className={`
-              group flex h-8 items-center gap-1.5 rounded-t px-3 text-xs transition-colors whitespace-nowrap
+              group relative flex h-8 items-center gap-1.5 whitespace-nowrap rounded-t px-3 text-xs transition-colors
               ${isActive
-                ? 'bg-[hsl(var(--background))] text-[hsl(var(--foreground))] border border-b-0 border-[hsl(var(--border))]'
-                : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-raised))]'}
+                ? 'border border-b-0 border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] shadow-[inset_0_-2px_0_hsl(var(--primary))]'
+                : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--surface-raised))] hover:text-[hsl(var(--foreground))]'}
             `}
           >
             {doc.isDirty && <span className="text-[hsl(var(--warning))]">•</span>}

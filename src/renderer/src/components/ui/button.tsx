@@ -1,6 +1,6 @@
 import { forwardRef, ButtonHTMLAttributes } from 'react'
 
-type Variant = 'default' | 'outline' | 'ghost' | 'destructive' | 'secondary'
+type Variant = 'default' | 'outline' | 'ghost' | 'destructive' | 'secondary' | 'cta'
 type Size = 'sm' | 'md' | 'lg' | 'icon'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -13,14 +13,16 @@ const base =
 
 const variants: Record<Variant, string> = {
   default:
-    'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.85)]',
+    'bg-[hsl(var(--cta))] text-[hsl(var(--cta-foreground))] hover:bg-[hsl(var(--cta)/0.88)] glow-lime',
+  cta:
+    'border border-[hsl(var(--cta))] bg-transparent text-[hsl(var(--cta))] hover:bg-[hsl(var(--cta)/0.1)] glow-lime',
   outline:
-    'border border-[hsl(var(--border))] bg-transparent text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-raised))]',
+    'border border-[hsl(var(--border))] bg-transparent text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-raised))] hover:border-[hsl(var(--primary)/0.4)]',
   ghost: 'bg-transparent text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-raised))]',
   destructive:
     'bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive)/0.85)]',
   secondary:
-    'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--secondary)/0.85)]'
+    'bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))] border border-[hsl(var(--primary)/0.35)] hover:bg-[hsl(var(--primary)/0.22)]'
 }
 
 const sizes: Record<Size, string> = {

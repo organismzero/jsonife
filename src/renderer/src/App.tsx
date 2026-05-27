@@ -3,6 +3,8 @@ import { ToastProvider } from './components/ui/toast'
 import { Dialog } from './components/ui/dialog'
 import { Button } from './components/ui/button'
 import { Sidebar, View } from './components/layout/Sidebar'
+import { AppHeader } from './components/layout/AppHeader'
+import { StatusBar } from './components/layout/StatusBar'
 import { EditorView } from './features/editor/EditorView'
 import { CompareView } from './features/compare/CompareView'
 import { ChartsView } from './features/charts/ChartsView'
@@ -33,11 +35,15 @@ function AppShell() {
   return (
     <div className="flex h-full bg-[hsl(var(--background))]">
       <Sidebar activeView={view} onViewChange={setView} />
-      <main className="flex flex-1 flex-col overflow-hidden">
-        {view === 'editor' && <EditorView />}
-        {view === 'compare' && <CompareView />}
-        {view === 'charts' && <ChartsView />}
-      </main>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-mesh">
+        <AppHeader view={view} />
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {view === 'editor' && <EditorView />}
+          {view === 'compare' && <CompareView />}
+          {view === 'charts' && <ChartsView />}
+        </main>
+        <StatusBar view={view} />
+      </div>
 
       <Dialog
         open={aboutOpen}
@@ -46,7 +52,7 @@ function AppShell() {
         footer={<Button onClick={() => setAboutOpen(false)}>OK</Button>}
       >
         <div className="flex flex-col gap-2 text-sm text-[hsl(var(--foreground))]">
-          <p className="font-semibold text-base">Jsonife</p>
+          <p className="text-base font-semibold">Jsonife</p>
           <p className="text-[hsl(var(--muted-foreground))]">
             Browse, edit, compare, and copy leaves between JSON, JSONC, and JSONL files.
           </p>
