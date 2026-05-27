@@ -2,6 +2,7 @@ appId: com.jsonife.app
 productName: Jsonife
 directories:
   buildResources: resources
+  output: release
 files:
   - dist/**
   - '!**/.vscode/*'

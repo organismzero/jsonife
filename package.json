@@ -14,10 +14,14 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "build:win": "npm run build && electron-builder --win",
-    "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux",
-    "test": "vitest run"
+    "build:win": "npm run build && electron-builder --win -p never",
+    "build:mac": "npm run build && electron-builder --mac -p never",
+    "build:linux": "npm run build && electron-builder --linux -p never",
+    "release": "node scripts/release.mjs",
+    "release:win": "node scripts/release.mjs --platform win",
+    "release:mac": "node scripts/release.mjs --platform mac",
+    "release:linux": "node scripts/release.mjs --platform linux",
+    "test": "vitest run --passWithNoTests"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",

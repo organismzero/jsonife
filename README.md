@@ -32,10 +32,34 @@ npm run dev        # Start Electron with HMR
 
 ## Building
 
+Production app bundle only:
+
 ```bash
-npm run build:linux   # AppImage + deb
-npm run build:win     # NSIS installer
-npm run build:mac     # DMG
+npm run build
+```
+
+Installers for distribution (runs tests, build, then electron-builder; output in `release/`):
+
+```bash
+npm run release              # current OS (AppImage + deb / NSIS / DMG)
+npm run release:linux
+npm run release:win            # on Linux/WSL, Wine is required for NSIS
+npm run release:mac            # requires macOS
+```
+
+Options via the release script:
+
+```bash
+npm run release -- --platform all --skip-test
+npm run release -- --help
+```
+
+Legacy per-platform shortcuts (same as before, without running tests):
+
+```bash
+npm run build:linux   # AppImage + deb → release/
+npm run build:win     # NSIS installer → release/
+npm run build:mac     # DMG → release/
 ```
 
 ## Keyboard shortcuts (native menu)
